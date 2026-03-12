@@ -1,0 +1,57 @@
+---
+title: Setup
+description: Local setup for the SkinTrack app and its Supabase integration.
+---
+
+# Setup
+
+## Install dependencies
+
+```bash
+npm install
+```
+
+## Create local environment variables
+
+```bash
+cp .env.local.example .env.local
+```
+
+Required variables:
+
+```bash
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+## Apply the database migration
+
+The initial schema lives in:
+
+```txt
+supabase/migrations/20260312180000_init_skintrack.sql
+```
+
+If Supabase CLI is available:
+
+```bash
+supabase db push
+npm run db:types
+```
+
+## Run the app
+
+```bash
+npm run dev
+```
+
+## Quality gate
+
+```bash
+npm run lint
+npx tsc --noEmit
+npm run test
+npm run build
+```

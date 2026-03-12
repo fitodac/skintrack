@@ -1,0 +1,32 @@
+---
+title: Architecture
+description: Main architectural decisions behind SkinTrack.
+---
+
+# Architecture
+
+SkinTrack uses a server-first Next.js architecture.
+
+## Main rules
+
+- React Server Components handle reads by default.
+- Server Actions handle internal mutations.
+- Supabase is the only backend service.
+- RLS is the final authorization layer.
+- Zustand is used only for browser-owned UI state.
+
+## Domain modules
+
+- `auth`
+- `profile`
+- `users`
+- `patients`
+- `clinical-sessions`
+
+## Security model
+
+- Public signup is disabled.
+- New users arrive only through `superadmin` invitation.
+- Google OAuth is allowed only for invited emails.
+- `complete_user_onboarding()` creates or syncs the `profiles` row after login.
+- `service_role` is used only on the server for invitation and admin flows.

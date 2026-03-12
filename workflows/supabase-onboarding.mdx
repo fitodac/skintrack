@@ -1,0 +1,39 @@
+---
+title: Supabase Auth and onboarding
+description: How SkinTrack authorizes invited users and syncs profiles.
+---
+
+# Supabase Auth and onboarding
+
+## User lifecycle
+
+1. A `superadmin` invites a user from `/admin/users`.
+2. SkinTrack stores the invitation in `user_invitations`.
+3. Supabase sends the invite email.
+4. The user signs in with email/password or Google using the invited email.
+5. `complete_user_onboarding()` creates or updates the `profiles` row.
+
+## Important tables
+
+- `profiles`
+- `user_invitations`
+- `patients`
+- `clinical_sessions`
+
+## Important SQL helpers
+
+- `is_superadmin()`
+- `can_manage_profile(uuid)`
+- `can_access_patient(uuid)`
+- `can_access_session(uuid)`
+- `complete_user_onboarding()`
+
+## First environment bootstrap
+
+The repository does not invent real emails for the first `master` and `sandra` users.
+
+For each environment:
+
+1. create the auth users with their real emails
+2. insert invitation rows for those emails
+3. let them complete first login so onboarding creates `profiles`

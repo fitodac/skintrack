@@ -1,0 +1,24 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "name": "SkinTrack Docs",
+  "theme": "mint",
+  "colors": {
+    "primary": "#1c1917",
+    "light": "#f7f3ee",
+    "dark": "#1c1917"
+  },
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": ["index", "getting-started/setup"]
+    },
+    {
+      "group": "Conventions",
+      "pages": ["conventions/architecture"]
+    },
+    {
+      "group": "Workflows",
+      "pages": ["workflows/supabase-onboarding"]
+    }
+  ]
+}
