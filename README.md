@@ -123,5 +123,4 @@ npm run qa
 
 - `src/middleware.ts` is required for session refresh and protected routing.
 - `service_role` is used only in server-side invitation flows.
-- `src/types/supabase.ts` is a checked-in schema snapshot for this implementation and
-  should be regenerated from a real project once Supabase CLI is linked.
+- `src/types/supabase.ts` is a checked-in schema snapshot for this implementation and should be regenerated from a real project once Supabase CLI is linked.
