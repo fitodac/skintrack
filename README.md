@@ -1,180 +1,127 @@
-# Next + Supabase AI Context Bootstrap
+# SkinTrack
 
-A small bootstrap for building **small apps** with:
+SkinTrack is a small production app for cosmetology practices that need:
 
-- Next.js
-- Supabase
-- Supabase Auth
-- Tailwind CSS 4
-- Motion
-- Shadcn/ui or HeroUI
-- Zustand
-- Zod
-- Vercel
+- private staff authentication
+- patient records with strict ownership
+- clinical session drafts with autosave
+- superadmin user management
 
-The goal is simple:
+The app is built with Next.js 15, Supabase Auth, PostgreSQL + RLS, Tailwind 4, Motion,
+Zod, Zustand, and Vitest.
 
-- generate clean code
-- keep architecture scalable
-- avoid random patterns
-- keep docs updated
-- write tests when the feature can be tested
+## Current scope
 
-## How this bootstrap works
+This repository now includes:
 
-The main entry file for AI agents is:
+- App Router setup with protected `(app)` and public `(auth)` route groups
+- Supabase SSR clients for server, browser, admin, and middleware usage
+- initial SQL migration for:
+  - `profiles`
+  - `user_invitations`
+  - `patients`
+  - `clinical_sessions`
+  - helper functions and RLS policies
+- profile management
+- patient listing, search, creation, update, and detail tabs
+- clinical session draft creation, autosave, and completion
+- superadmin invitation flow and user administration
+- session expiry warning UI
+- unit tests for schemas, helpers, mappers, and Zustand session warning state
 
-```md
-AGENTS.md
-```
+## Routes
 
-That file sends the agent to the real source of truth inside `context/`.
+- `/login`
+- `/auth/callback`
+- `/profile`
+- `/patients`
+- `/patients/[patientId]`
+- `/patients/[patientId]/sessions/new`
+- `/patients/[patientId]/sessions/[sessionId]`
+- `/admin/users`
 
-Project rules live here:
+## Local setup
 
-```txt
-context/project/
-```
-
-Reusable coding rules live here:
-
-```txt
-context/coding/
-```
-
-## Main ideas
-
-### 1. Small app profile
-
-This bootstrap is designed for apps with a **small number of users**.
-
-Example:
-
-```txt
-A dashboard for 5 to 30 people inside a team
-```
-
-### 2. Server-first architecture
-
-Use Server Components by default.
-
-```tsx
-export default async function ProjectsPage() {
-  return <div>Projects</div>
-}
-```
-
-Only use client components when you really need browser interactivity.
-
-```tsx
-'use client'
-
-import { useState } from 'react'
-
-export function Counter() {
-  const [count, setCount] = useState(0)
-
-  return <button onClick={() => setCount(count + 1)}>{count}</button>
-}
-```
-
-### 3. Zustand is for client state only
-
-Good use:
-
-```ts
-import { create } from 'zustand'
-
-type ModalStore = {
-  isOpen: boolean
-  open: () => void
-  close: () => void
-}
-
-export const useModalStore = create<ModalStore>((set) => ({
-  isOpen: false,
-  open: () => set({ isOpen: true }),
-  close: () => set({ isOpen: false }),
-}))
-```
-
-Bad use:
-
-```ts
-// Do not use Zustand as the main source of truth for Supabase table data
-```
-
-### 4. Zod validates input
-
-```ts
-import { z } from 'zod'
-
-export const createProjectSchema = z.object({
-  name: z.string().min(1),
-})
-```
-
-### 5. Documentation is part of the work
-
-Every meaningful feature or fix must update:
-
-- `README.md` on the app branch
-- the Mintlify docs in the `docs` branch
-
-Example workflow:
+1. Install dependencies:
 
 ```bash
-git switch main
-# change app code
-# update README.md
+npm install
+```
 
+2. Copy the environment template:
+
+```bash
+cp .env.local.example .env.local
+```
+
+3. Fill these values:
+
+```bash
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+4. Apply the SQL migration in Supabase.
+
+The repo includes:
+
+```txt
+supabase/migrations/20260312180000_init_skintrack.sql
+```
+
+If you use Supabase CLI, push migrations and then regenerate database types:
+
+```bash
+supabase db push
+npm run db:types
+```
+
+The CLI is not bundled in this repo, so install it separately if you want local Supabase
+commands.
+
+## Auth and onboarding
+
+- Public signup must stay disabled.
+- Users are invited by a `superadmin`.
+- Email/password and Google OAuth are both supported.
+- Google access is still restricted to invited emails because onboarding depends on
+  `user_invitations`.
+- On first successful login, `complete_user_onboarding()` creates or syncs the
+  `profiles` row.
+
+### First environment bootstrap
+
+The migration cannot invent real emails for the initial `master` and `sandra` users.
+Use real addresses in your environment and bootstrap them before the first login.
+
+Recommended flow:
+
+1. create the initial auth users in Supabase Auth
+2. insert matching invitation rows with the real emails
+3. let each user complete first login so `profiles` is created safely
+
+## Quality commands
+
+Run the full gate in this order:
+
+```bash
 npm run lint
 npx tsc --noEmit
 npm run test
 npm run build
-
-git switch docs
-# update docs.json and .mdx pages
 ```
 
-Mintlify uses a required `docs.json` file as the core config file, navigation must explicitly list page paths, and the CLI can be installed with `npm i -g mint` and previewed locally with `mint dev`. citeturn550955search0turn315145view1turn315145view0
+Or use:
 
-### 6. Test what can be tested
-
-If the change is testable, it must include tests.
-
-```ts
-import { describe, it, expect } from 'vitest'
-
-describe('createProjectSchema', () => {
-  it('rejects empty name', () => {
-    expect(() => createProjectSchema.parse({ name: '' })).toThrow()
-  })
-})
+```bash
+npm run qa
 ```
 
-## Suggested workflow
+## Notes
 
-```txt
-1. Read AGENTS.md
-2. Build or fix the feature on the app branch
-3. Update README.md
-4. Run lint, typecheck, tests, and build
-5. Switch to docs branch
-6. Update Mintlify docs
-7. Commit each branch separately
-```
-
-## Why this is useful
-
-Because the agent stops behaving like:
-
-```txt
-"I created something that works... maybe"
-```
-
-And starts behaving more like:
-
-```txt
-"I changed only what was needed, documented it, and verified it"
-```
+- `src/middleware.ts` is required for session refresh and protected routing.
+- `service_role` is used only in server-side invitation flows.
+- `src/types/supabase.ts` is a checked-in schema snapshot for this implementation and
+  should be regenerated from a real project once Supabase CLI is linked.
