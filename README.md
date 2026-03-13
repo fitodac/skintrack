@@ -61,6 +61,8 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_ACCESS_TOKEN=your-cli-access-token
+SUPABASE_DB_PASSWORD=your-remote-postgres-password
 ```
 
 4. Apply the SQL migration in Supabase.
@@ -71,15 +73,23 @@ The repo includes:
 supabase/migrations/20260312180000_init_skintrack.sql
 ```
 
-If you use Supabase CLI, push migrations and then regenerate database types:
+If you use Supabase CLI, authenticate the CLI first and then push migrations:
 
 ```bash
-supabase db push
+export SUPABASE_ACCESS_TOKEN=your-cli-access-token
+npm run db:link
+npm run db:push
 npm run db:types
 ```
 
-The CLI is not bundled in this repo, so install it separately if you want local Supabase
-commands.
+The repository uses `npx supabase`, so a global binary is not required.
+The `db:types` script derives the project ref from `NEXT_PUBLIC_SUPABASE_URL`.
+
+`db:link` and `db:push` both require the remote Postgres password:
+
+```bash
+export SUPABASE_DB_PASSWORD=your-remote-postgres-password
+```
 
 ## Auth and onboarding
 
@@ -101,6 +111,33 @@ Recommended flow:
 1. create the initial auth users in Supabase Auth
 2. insert matching invitation rows with the real emails
 3. let each user complete first login so `profiles` is created safely
+
+## E2E setup
+
+Playwright is included for the first real browser flows using email/password auth.
+
+Required variables:
+
+```bash
+E2E_SUPERADMIN_EMAIL=fitodac.webmanager@gmail.com
+E2E_SUPERADMIN_PASSWORD=change-me
+E2E_ADMIN_EMAIL=sandramorinigo2025@gmail.com
+E2E_ADMIN_PASSWORD=change-me
+```
+
+Run E2E with:
+
+```bash
+npm run test:e2e
+```
+
+The current E2E suite covers:
+
+- login with email/password
+- patient creation
+- session draft autosave
+- session completion
+- `/admin/users` access control
 
 ## Quality commands
 
