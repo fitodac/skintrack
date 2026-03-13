@@ -156,6 +156,8 @@ create or replace function public.is_superadmin()
 returns boolean
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select exists (
     select 1
@@ -170,6 +172,8 @@ create or replace function public.can_manage_profile(profile_uuid uuid)
 returns boolean
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select auth.uid() = profile_uuid or public.is_superadmin();
 $$;
@@ -178,6 +182,8 @@ create or replace function public.can_access_patient(patient_uuid uuid)
 returns boolean
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select exists (
     select 1
@@ -195,6 +201,8 @@ create or replace function public.can_access_session(session_uuid uuid)
 returns boolean
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select exists (
     select 1
