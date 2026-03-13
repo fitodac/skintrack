@@ -24,6 +24,8 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_ACCESS_TOKEN=your-cli-access-token
+SUPABASE_DB_PASSWORD=your-remote-postgres-password
 ```
 
 ## Apply the database migration
@@ -37,9 +39,13 @@ supabase/migrations/20260312180000_init_skintrack.sql
 If Supabase CLI is available:
 
 ```bash
-supabase db push
+export SUPABASE_ACCESS_TOKEN=your-cli-access-token
+npm run db:link
+npm run db:push
 npm run db:types
 ```
+
+`db:link` and `db:push` require the remote Postgres password in `SUPABASE_DB_PASSWORD`.
 
 ## Run the app
 
@@ -54,4 +60,12 @@ npm run lint
 npx tsc --noEmit
 npm run test
 npm run build
+```
+
+## E2E
+
+Playwright is available for the first browser-based flows.
+
+```bash
+npm run test:e2e
 ```
