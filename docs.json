@@ -7,18 +7,20 @@
     "light": "#f7f3ee",
     "dark": "#1c1917"
   },
-  "navigation": [
-    {
-      "group": "Getting Started",
-      "pages": ["index", "getting-started/setup"]
-    },
-    {
-      "group": "Conventions",
-      "pages": ["conventions/architecture"]
-    },
-    {
-      "group": "Workflows",
-      "pages": ["workflows/supabase-onboarding"]
-    }
-  ]
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting Started",
+        "pages": ["index", "getting-started/setup"]
+      },
+      {
+        "group": "Conventions",
+        "pages": ["conventions/architecture"]
+      },
+      {
+        "group": "Workflows",
+        "pages": ["workflows/supabase-onboarding"]
+      }
+    ]
+  }
 }
