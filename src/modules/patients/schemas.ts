@@ -7,6 +7,13 @@ const nullableString = z
   .nullable()
   .optional();
 
+const nullableDateString = z
+  .string()
+  .trim()
+  .transform((value) => (value.length === 0 ? null : value))
+  .nullable()
+  .optional();
+
 const nullableNumber = z
   .union([z.number(), z.nan(), z.null(), z.undefined()])
   .transform((value) => (typeof value === 'number' && Number.isFinite(value) ? value : null));
@@ -22,7 +29,7 @@ export const patientFormSchema = z.object({
   admin_user_id: z.string().uuid().nullable().optional(),
   name: z.string().min(2, 'El nombre del paciente es obligatorio.'),
   email: z.string().email('Ingresá un email válido.'),
-  born_date: z.string().nullable().optional(),
+  born_date: nullableDateString,
   nationality: nullableString,
   marital_status: nullableString,
   number_of_children: nullableNumber,
@@ -36,7 +43,7 @@ export const patientFormSchema = z.object({
   person_for_contact: nullableString,
   occupation: nullableString,
   working_hours: nullableString,
-  first_consultation_date: z.string().nullable().optional(),
+  first_consultation_date: nullableDateString,
   hereditary_history: nullableString,
   allergic_history: nullableString,
   organic_history: nullableString,

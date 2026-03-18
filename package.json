@@ -10,8 +10,12 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
     "qa": "npm run lint && npm run typecheck && npm run test && npm run build",
-    "db:types": "echo \"Generate src/types/supabase.ts with Supabase CLI after linking a real project.\""
+    "db:link": "sh -c 'ref=$(printf \"%s\" \"$NEXT_PUBLIC_SUPABASE_URL\" | sed -E \"s#https://([^.]+)\\.supabase\\.co/?#\\1#\"); test -n \"$ref\" && test -n \"$SUPABASE_DB_PASSWORD\" && npx supabase link --project-ref \"$ref\" -p \"$SUPABASE_DB_PASSWORD\"'",
+    "db:push": "sh -c 'test -n \"$SUPABASE_DB_PASSWORD\" && npx supabase db push -p \"$SUPABASE_DB_PASSWORD\"'",
+    "db:types": "sh -c 'ref=$(printf \"%s\" \"$NEXT_PUBLIC_SUPABASE_URL\" | sed -E \"s#https://([^.]+)\\.supabase\\.co/?#\\1#\"); tmp=$(mktemp); test -n \"$ref\" && npx supabase gen types typescript --project-id \"$ref\" --schema public > \"$tmp\" && mv \"$tmp\" src/types/supabase.ts'"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",
@@ -32,6 +36,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4.1.11",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
@@ -42,6 +47,7 @@
     "eslint": "^9.34.0",
     "eslint-config-next": "^15.3.0",
     "jsdom": "^26.1.0",
+    "supabase": "^2.78.1",
     "tailwindcss": "^4.1.11",
     "typescript": "^5.9.2",
     "vitest": "^2.1.9"
