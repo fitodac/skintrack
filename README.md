@@ -54,32 +54,85 @@ npm install
 cp .env.local.example .env.local
 ```
 
-3. Fill these values:
+3. Fill these values before starting local Supabase:
 
 ```bash
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=your-google-client-secret
+SUPABASE_PRODUCTION_DB_URL=postgresql://postgres.your-project-ref:your-db-password@db.your-project-ref.supabase.co:5432/postgres
 ```
 
-4. Apply the SQL migration in Supabase.
-
-The repo includes:
-
-```txt
-supabase/migrations/20260312180000_init_skintrack.sql
-```
-
-If you use Supabase CLI, push migrations and then regenerate database types:
+4. Start the local Supabase stack in Docker:
 
 ```bash
-supabase db push
+npm run db:start
+```
+
+5. Write the local Supabase URL and keys into `.env.local`:
+
+```bash
+npm run db:env:local
+```
+
+6. Regenerate the checked-in database types from the local stack:
+
+```bash
 npm run db:types
 ```
 
-The CLI is not bundled in this repo, so install it separately if you want local Supabase
-commands.
+7. Run the app:
+
+```bash
+npm run dev
+```
+
+Useful local database commands:
+
+```bash
+npm run db:status
+npm run db:reset
+npm run db:stop
+```
+
+## Production to local sync
+
+To replace all local data with a fresh copy from production:
+
+```bash
+npm run db:sync:prod-to-local
+```
+
+What this command does:
+
+- starts the local Supabase stack if it is not running
+- resets the local database from `supabase/migrations`
+- dumps all `public` tables from production
+- also dumps `auth.users` and `auth.identities`
+- restores that data into the local Supabase database
+
+Requirements:
+
+- `SUPABASE_PRODUCTION_DB_URL` must exist in your shell or `.env.local`
+- `pg_dump` and `psql` must be installed locally
+
+The sync intentionally does **not** copy active sessions or refresh tokens from production.
+
+## Supabase config
+
+The repo now includes:
+
+```txt
+supabase/config.toml
+supabase/migrations/20260312180000_init_skintrack.sql
+```
+
+This local config keeps auth private like production:
+
+- public signup disabled
+- email/password login enabled for invited users
+- Google OAuth enabled through environment variables
+- local callback allowed at `http://localhost:3000/auth/callback`
 
 ## Auth and onboarding
 
@@ -101,6 +154,11 @@ Recommended flow:
 1. create the initial auth users in Supabase Auth
 2. insert matching invitation rows with the real emails
 3. let each user complete first login so `profiles` is created safely
+
+For local development with Google OAuth, configure the Google client to allow:
+
+- `http://127.0.0.1:54321/auth/v1/callback`
+- `http://localhost:3000/auth/callback`
 
 ## Quality commands
 

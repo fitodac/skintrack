@@ -11,7 +11,13 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "qa": "npm run lint && npm run typecheck && npm run test && npm run build",
-    "db:types": "echo \"Generate src/types/supabase.ts with Supabase CLI after linking a real project.\""
+    "db:start": "node src/lib/supabase/run-local-cli.mjs start",
+    "db:stop": "node src/lib/supabase/run-local-cli.mjs stop",
+    "db:status": "node src/lib/supabase/run-local-cli.mjs status",
+    "db:reset": "node src/lib/supabase/run-local-cli.mjs reset",
+    "db:env:local": "node src/lib/supabase/write-local-env.mjs",
+    "db:types": "node src/lib/supabase/run-local-cli.mjs types",
+    "db:sync:prod-to-local": "node src/lib/supabase/sync-prod-to-local.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",
