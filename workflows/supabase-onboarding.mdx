@@ -13,6 +13,20 @@ description: How SkinTrack authorizes invited users and syncs profiles.
 4. The user signs in with email/password or Google using the invited email.
 5. `complete_user_onboarding()` creates or updates the `profiles` row.
 
+## Local parity rules
+
+The local Supabase stack is expected to behave like production for auth:
+
+- public signup stays disabled
+- invited users can log in with email/password
+- invited users can also log in with Google OAuth
+- the app callback stays at `/auth/callback`
+
+For local Google OAuth, configure the provider to allow:
+
+- `http://127.0.0.1:54321/auth/v1/callback`
+- `http://localhost:3000/auth/callback`
+
 ## Important tables
 
 - `profiles`
@@ -37,6 +51,22 @@ For each environment:
 1. create the auth users with their real emails
 2. insert invitation rows for those emails
 3. let them complete first login so onboarding creates `profiles`
+
+## Refresh local data from production
+
+When local data must match production, use:
+
+```bash
+npm run db:sync:prod-to-local
+```
+
+This replaces the local data set with:
+
+- every table from the `public` schema
+- `auth.users`
+- `auth.identities`
+
+The command does not import active sessions or refresh tokens.
 
 ## Real emails used for the initial rollout
 

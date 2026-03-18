@@ -17,40 +17,93 @@ npm install
 cp .env.local.example .env.local
 ```
 
-Required variables:
+Set these values before starting local Supabase:
 
 ```bash
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-SUPABASE_ACCESS_TOKEN=your-cli-access-token
-SUPABASE_DB_PASSWORD=your-remote-postgres-password
+SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=your-google-client-secret
+SUPABASE_PRODUCTION_DB_URL=postgresql://postgres.your-project-ref:your-db-password@db.your-project-ref.supabase.co:5432/postgres
 ```
 
-## Apply the database migration
-
-The initial schema lives in:
-
-```txt
-supabase/migrations/20260312180000_init_skintrack.sql
-```
-
-If Supabase CLI is available:
+## Start local Supabase in Docker
 
 ```bash
-export SUPABASE_ACCESS_TOKEN=your-cli-access-token
-npm run db:link
-npm run db:push
+npm run db:start
+```
+
+## Write local app credentials into `.env.local`
+
+```bash
+npm run db:env:local
+```
+
+This command updates only the Supabase keys used by the app:
+
+```bash
+NEXT_PUBLIC_APP_URL
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+```
+
+## Regenerate database types
+
+```bash
 npm run db:types
 ```
 
-`db:link` and `db:push` require the remote Postgres password in `SUPABASE_DB_PASSWORD`.
+## Local schema files
+
+The local Supabase project is configured in:
+
+```txt
+supabase/config.toml
+supabase/migrations/20260312180000_init_skintrack.sql
+```
+
+The local config keeps auth aligned with production behavior:
+
+- public signup disabled
+- email/password available only for invited users
+- Google OAuth enabled through environment variables
+- local callback allowed at `http://localhost:3000/auth/callback`
+
+## Sync production data into local Supabase
+
+To fully replace local data with production data:
+
+```bash
+npm run db:sync:prod-to-local
+```
+
+This command:
+
+1. starts local Supabase if it is not running
+2. resets the local database from migrations
+3. dumps all `public` tables from production
+4. also copies `auth.users` and `auth.identities`
+5. restores the dump into local Supabase
+
+Requirements:
+
+- `SUPABASE_PRODUCTION_DB_URL` must be present
+- `pg_dump` and `psql` must be installed locally
+
+The sync intentionally does not copy active sessions or refresh tokens.
 
 ## Run the app
 
 ```bash
 npm run dev
+```
+
+Useful local database commands:
+
+```bash
+npm run db:status
+npm run db:reset
+npm run db:stop
 ```
 
 ## Quality gate
@@ -60,12 +113,4 @@ npm run lint
 npx tsc --noEmit
 npm run test
 npm run build
-```
-
-## E2E
-
-Playwright is available for the first browser-based flows.
-
-```bash
-npm run test:e2e
 ```
