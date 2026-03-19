@@ -1,0 +1,8 @@
+{
+  "name": "skintrack-docs",
+  "private": true,
+  "scripts": {
+    "mint": "zsh -lc 'export NVM_DIR=\"${NVM_DIR:-$HOME/.nvm}\"; [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"; command -v nvm >/dev/null 2>&1 || { echo \"nvm no está disponible en esta shell. Instálalo o carga nvm.sh en tu zsh.\" >&2; exit 1; }; nvm install 20 >/dev/null; nvm exec 20 npm exec --yes -- mintlify'",
+    "mint:dev": "zsh -lc 'export NVM_DIR=\"${NVM_DIR:-$HOME/.nvm}\"; [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"; command -v nvm >/dev/null 2>&1 || { echo \"nvm no está disponible en esta shell. Instálalo o carga nvm.sh en tu zsh.\" >&2; exit 1; }; nvm install 20 >/dev/null; nvm exec 20 npm exec --yes -- mintlify dev'"
+  }
+}
