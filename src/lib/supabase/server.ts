@@ -1,14 +1,50 @@
 import { createServerClient as createClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Database } from '@/types/supabase';
-import { getPublicEnv } from '@/lib/env';
+import { getPublicEnv, getServerSupabaseUrl } from '@/lib/env';
+
+let cachedResolvedUrl: string | null = null;
+
+async function resolveSupabaseServerUrl(): Promise<string> {
+  if (cachedResolvedUrl) return cachedResolvedUrl;
+
+  const primary = getServerSupabaseUrl();
+  const fallback = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  const candidates = Array.from(
+    new Set([fallback, primary].filter((value): value is string => Boolean(value))),
+  );
+
+  for (const baseUrl of candidates) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 400);
+
+      const res = await fetch(new URL('/auth/v1/health', baseUrl), {
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        cachedResolvedUrl = baseUrl;
+        return baseUrl;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return primary;
+}
 
 export async function createServerClient() {
   const cookieStore = await cookies();
   const env = getPublicEnv();
+  const serverSupabaseUrl = await resolveSupabaseServerUrl();
 
   return createClient<Database>(
-    env.NEXT_PUBLIC_SUPABASE_URL,
+    serverSupabaseUrl,
     env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {

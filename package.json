@@ -13,9 +13,16 @@
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "qa": "npm run lint && npm run typecheck && npm run test && npm run build",
-    "db:link": "sh -c 'ref=$(printf \"%s\" \"$NEXT_PUBLIC_SUPABASE_URL\" | sed -E \"s#https://([^.]+)\\.supabase\\.co/?#\\1#\"); test -n \"$ref\" && test -n \"$SUPABASE_DB_PASSWORD\" && npx supabase link --project-ref \"$ref\" -p \"$SUPABASE_DB_PASSWORD\"'",
-    "db:push": "sh -c 'test -n \"$SUPABASE_DB_PASSWORD\" && npx supabase db push -p \"$SUPABASE_DB_PASSWORD\"'",
-    "db:types": "sh -c 'ref=$(printf \"%s\" \"$NEXT_PUBLIC_SUPABASE_URL\" | sed -E \"s#https://([^.]+)\\.supabase\\.co/?#\\1#\"); tmp=$(mktemp); test -n \"$ref\" && npx supabase gen types typescript --project-id \"$ref\" --schema public > \"$tmp\" && mv \"$tmp\" src/types/supabase.ts'"
+    "local:setup": "npm run db:start && npm run db:env:local && npm run db:types",
+    "local:up": "npm run local:setup && docker compose -f compose.local.yml up -d --build app",
+    "local:down": "docker compose -f compose.local.yml down && npm run db:stop",
+    "db:start": "node src/lib/supabase/run-local-cli.mjs start",
+    "db:stop": "node src/lib/supabase/run-local-cli.mjs stop",
+    "db:status": "node src/lib/supabase/run-local-cli.mjs status",
+    "db:reset": "node src/lib/supabase/run-local-cli.mjs reset",
+    "db:env:local": "node src/lib/supabase/write-local-env.mjs",
+    "db:types": "node src/lib/supabase/run-local-cli.mjs types",
+    "db:sync:prod-to-local": "node src/lib/supabase/sync-prod-to-local.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.14",

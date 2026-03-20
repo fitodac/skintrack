@@ -1,13 +1,15 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-canvas: #f5efe7;
-  --color-panel: #fffdf8;
-  --color-ink: #1c1917;
-  --color-muted: #78716c;
-  --font-sans: 'Avenir Next', 'Segoe UI', sans-serif;
-  --font-serif: 'Iowan Old Style', 'Palatino Linotype', serif;
-  --radius-card: 1.75rem;
+  --color-canvas: var(--theme-bg, #FDFBF7);
+  --color-primary: var(--theme-primary, #334B42);
+  --color-secondary: var(--theme-secondary, #E8E1D7);
+  --color-panel: #FFFFFF;
+  --color-ink: #2A2F2C;
+  --color-muted: #858E8A;
+  --font-sans: var(--app-font-sans), 'Avenir Next', 'Segoe UI', sans-serif;
+  --font-serif: var(--app-font-serif), 'Iowan Old Style', 'Palatino Linotype', serif;
+  --radius-card: 1rem;
 }
 
 :root {
@@ -25,7 +27,10 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: linear-gradient(180deg, #f7f3ee 0%, #efe9e2 100%);
+  background-color: var(--theme-bg, #FDFBF7);
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(232, 225, 215, 0.4) 0%, transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(232, 225, 215, 0.4) 0%, transparent 40%);
   color: var(--color-ink);
   font-family: var(--font-sans);
 }

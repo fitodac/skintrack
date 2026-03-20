@@ -17,16 +17,16 @@ export function PageShell({
   className,
 }: PageShellProps) {
   return (
-    <section className={cn('space-y-6', className)}>
-      <header className="flex flex-col gap-4 rounded-[32px] bg-[radial-gradient(circle_at_top_left,_rgba(209,213,219,0.45),_transparent_55%),linear-gradient(135deg,#faf7f2,#f4efe7)] p-8 shadow-sm md:flex-row md:items-end md:justify-between">
-        <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.32em] text-stone-500">
-            SkinTrack
+    <section className={cn('space-y-10', className)}>
+      <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between px-2 pt-2 pb-6 border-b border-stone-200/50">
+        <div className="space-y-3">
+          <p className="font-serif text-[10px] font-medium uppercase tracking-[0.4em] text-primary/70">
+            skintrack.
           </p>
-          <h1 className="text-3xl font-semibold text-stone-950">{title}</h1>
-          {description ? <p className="max-w-2xl text-sm text-stone-600">{description}</p> : null}
+          <h1 className="font-serif text-4xl font-medium tracking-tight text-stone-900">{title}</h1>
+          {description ? <p className="max-w-xl text-[15px] text-stone-500 leading-relaxed">{description}</p> : null}
         </div>
-        {actions ? <div className="flex flex-wrap items-center gap-3">{actions}</div> : null}
+        {actions ? <div className="flex flex-wrap items-center gap-4">{actions}</div> : null}
       </header>
 
       {children}
