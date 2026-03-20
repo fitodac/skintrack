@@ -1,8 +1,8 @@
 'use client';
 
+import * as React from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useTransition } from 'react';
 import { Chrome } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,8 +13,8 @@ import { signInWithGoogle, signInWithPassword } from '@/lib/actions/auth-actions
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState(searchParams.get('error') ?? '');
+  const [isPending, startTransition] = React.useTransition();
+  const [error, setError] = React.useState(searchParams.get('error') ?? '');
   const next = searchParams.get('next') ?? '/patients';
 
   return (
@@ -69,12 +69,20 @@ export function LoginForm() {
           </Button>
         </form>
 
-        <form action={async () => signInWithGoogle(next)}>
-          <Button type="submit" variant="outline" className="w-full">
-            <Chrome className="h-4 w-4" />
-            Continuar con Google
-          </Button>
-        </form>
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          disabled={isPending}
+          onClick={() => {
+            startTransition(async () => {
+              await signInWithGoogle(next);
+            });
+          }}
+        >
+          <Chrome className="h-4 w-4" />
+          Continuar con Google
+        </Button>
 
         <p className="text-xs text-stone-500">
           El acceso es privado. Si todavía no tenés invitación, pedila a la persona

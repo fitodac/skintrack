@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import type { Database } from '@/types/supabase';
-import { hasSupabaseEnv } from '@/lib/env';
+import { getServerSupabaseUrl, hasSupabaseEnv } from '@/lib/env';
 
 const AUTH_PATHS = ['/login', '/auth/callback'];
 
@@ -15,9 +15,10 @@ export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({
     request,
   });
+  const serverSupabaseUrl = getServerSupabaseUrl();
 
   const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    serverSupabaseUrl,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
