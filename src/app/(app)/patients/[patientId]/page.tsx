@@ -1,9 +1,11 @@
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { PageShell } from '@/components/shared/page-shell';
+import { Button } from '@/components/ui/button';
 import { requireViewer } from '@/lib/auth';
 import { listAdminUsers } from '@/modules/users/queries';
 import { listClinicalSessionsForPatient } from '@/modules/clinical-sessions/queries';
-import { PatientDetailTabs } from '@/modules/patients/components/patient-detail-tabs';
+import { ClinicalSessionsTable } from '@/modules/clinical-sessions/components/clinical-sessions-table';
 import { PatientForm } from '@/modules/patients/components/patient-form';
 import { getPatientDetailForViewer } from '@/modules/patients/queries';
 
@@ -30,7 +32,13 @@ export default async function PatientDetailPage({ params }: PatientDetailPagePro
     <PageShell
       title={patient.name}
       description="Detalle clínico completo con edición de ficha y seguimiento por sesiones."
+      actions={
+        <Link href={`/patients/${patient.id}/sessions/new`}>
+          <Button>Nueva sesión</Button>
+        </Link>
+      }
     >
+      <ClinicalSessionsTable patientId={patient.id} sessions={sessions} />
       <PatientForm
         viewer={viewer}
         patient={patient}
@@ -39,7 +47,6 @@ export default async function PatientDetailPage({ params }: PatientDetailPagePro
           label: `${owner.name} ${owner.lastname} · ${owner.role}`,
         }))}
       />
-      <PatientDetailTabs patient={patient} sessions={sessions} />
     </PageShell>
   );
 }

@@ -17,16 +17,16 @@ interface PatientDetailTabsProps {
 function Item({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
     <div className="space-y-1">
-      <p className="text-xs uppercase tracking-[0.2em] text-stone-500">{label}</p>
-      <p className="text-sm text-stone-800">{value || 'Sin dato'}</p>
+      <p className="text-[11px] uppercase tracking-[0.2em] font-medium text-stone-500">{label}</p>
+      <p className="text-sm text-stone-800 leading-relaxed">{value || 'Sin dato'}</p>
     </div>
   );
 }
 
 export function PatientDetailTabs({ patient, sessions }: PatientDetailTabsProps) {
   return (
-    <Tabs.Root defaultValue="personales" className="space-y-4">
-      <Tabs.List className="flex flex-wrap gap-2 rounded-[28px] bg-white p-2 shadow-sm">
+    <Tabs.Root defaultValue="personales" className="space-y-6">
+      <Tabs.List className="flex flex-wrap gap-2 rounded-full bg-white/60 backdrop-blur-xl border border-white/40 p-2 shadow-[0_4px_20px_rgb(0,0,0,0.03)]">
         {[
           ['personales', 'Datos personales'],
           ['antecedentes', 'Antecedentes'],
@@ -36,7 +36,7 @@ export function PatientDetailTabs({ patient, sessions }: PatientDetailTabsProps)
           <Tabs.Trigger
             key={value}
             value={value}
-            className="rounded-full px-4 py-2 text-sm font-medium text-stone-600 data-[state=active]:bg-stone-950 data-[state=active]:text-white"
+            className="rounded-full px-5 py-2.5 text-sm font-medium text-stone-600 transition-all data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm hover:text-stone-900"
           >
             {label}
           </Tabs.Trigger>
@@ -112,7 +112,7 @@ export function PatientDetailTabs({ patient, sessions }: PatientDetailTabsProps)
               </div>
               <Link
                 href={`/patients/${patient.id}/sessions/new`}
-                className="rounded-full bg-stone-950 px-4 py-2 text-sm font-semibold text-white"
+                className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/90 transition"
               >
                 Registrar sesión
               </Link>
@@ -123,7 +123,7 @@ export function PatientDetailTabs({ patient, sessions }: PatientDetailTabsProps)
                 <Link
                   key={session.id}
                   href={`/patients/${patient.id}/sessions/${session.id}`}
-                  className="block rounded-2xl border border-stone-200 p-4 transition hover:border-stone-950"
+                  className="block rounded-2xl border border-stone-200 p-4 transition hover:border-primary"
                 >
                   <div className="flex items-center justify-between gap-4">
                     <div>

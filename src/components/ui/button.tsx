@@ -5,20 +5,20 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 rounded-full text-sm font-semibold transition disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+  'inline-flex items-center justify-center gap-2 rounded-full text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2 active:scale-[0.98]',
   {
     variants: {
       variant: {
-        default: 'bg-stone-950 px-4 py-2 text-stone-50 hover:bg-stone-800',
-        secondary: 'bg-stone-200 px-4 py-2 text-stone-900 hover:bg-stone-300',
-        outline: 'border border-stone-300 bg-white px-4 py-2 text-stone-900 hover:bg-stone-50',
-        ghost: 'px-3 py-2 text-stone-700 hover:bg-stone-100',
-        danger: 'bg-rose-600 px-4 py-2 text-white hover:bg-rose-500',
+        default: 'bg-primary text-white shadow-sm hover:bg-primary/90 hover:shadow',
+        secondary: 'bg-white/80 backdrop-blur-sm border border-stone-200/60 text-primary shadow-sm hover:bg-white hover:text-primary',
+        outline: 'border border-stone-300 bg-transparent text-primary hover:bg-stone-50 hover:text-primary',
+        ghost: 'text-primary hover:bg-stone-100/50 hover:text-primary',
+        danger: 'bg-rose-600 text-white shadow-sm hover:bg-rose-500',
       },
       size: {
-        default: 'h-10',
-        sm: 'h-9 px-3 text-xs',
-        lg: 'h-11 px-5',
+        default: 'h-11 px-6 py-2.5',
+        sm: 'h-9 px-4 text-xs',
+        lg: 'h-12 px-8 text-base',
       },
     },
     defaultVariants: {
