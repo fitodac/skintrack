@@ -1,0 +1,10 @@
+{
+  "logo_path": "/logo.svg",
+  "logo_width": "auto",
+  "logo_height": "auto",
+  "colors": {
+    "background": "#FDFBF7",
+    "primary": "#334B42",
+    "secondary": "#E8E1D7"
+  }
+}
