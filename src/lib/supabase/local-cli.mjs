@@ -10,6 +10,18 @@ export function getProjectRoot() {
   return projectRoot;
 }
 
+export function normalizeEnvValue(value) {
+  if (
+    value.length >= 2
+    && ((value.startsWith('"') && value.endsWith('"'))
+      || (value.startsWith("'") && value.endsWith("'")))
+  ) {
+    return value.slice(1, -1);
+  }
+
+  return value;
+}
+
 export function parseEnvFileContent(content) {
   return content
     .split(/\r?\n/)
@@ -26,7 +38,7 @@ export function parseEnvFileContent(content) {
       }
 
       const key = trimmed.slice(0, separatorIndex).trim();
-      const value = trimmed.slice(separatorIndex + 1).trim();
+      const value = normalizeEnvValue(trimmed.slice(separatorIndex + 1).trim());
 
       if (key) {
         env[key] = value;

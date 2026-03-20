@@ -1,9 +1,20 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { getProjectRoot, runSupabaseCommand, writeFileWithTrailingNewline } from './local-cli.mjs';
+import {
+  getProjectRoot,
+  normalizeEnvValue,
+  runSupabaseCommand,
+  writeFileWithTrailingNewline,
+} from './local-cli.mjs';
 
 const DEFAULT_APP_URL = 'http://localhost:3000';
+
+export function buildSupabaseServerUrl(apiUrl) {
+  return apiUrl
+    .replace('://127.0.0.1', '://host.docker.internal')
+    .replace('://localhost', '://host.docker.internal');
+}
 
 export function parseStatusEnv(content) {
   return content
@@ -22,7 +33,7 @@ export function parseStatusEnv(content) {
       }
 
       const key = trimmed.slice(0, separatorIndex).trim();
-      const value = trimmed.slice(separatorIndex + 1).trim();
+      const value = normalizeEnvValue(trimmed.slice(separatorIndex + 1).trim());
 
       if (key) {
         env[key] = value;
@@ -46,6 +57,7 @@ export function buildNextLocalEnv(statusEnv, { appUrl = DEFAULT_APP_URL } = {}) 
     NEXT_PUBLIC_SUPABASE_URL: apiUrl,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: anonKey,
     SUPABASE_SERVICE_ROLE_KEY: serviceRoleKey,
+    SUPABASE_SERVER_URL: buildSupabaseServerUrl(apiUrl),
   };
 }
 

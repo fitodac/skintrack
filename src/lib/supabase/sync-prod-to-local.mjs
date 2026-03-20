@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
+  loadProjectEnv,
   runCommand,
   runSupabaseCommand,
 } from './local-cli.mjs';
@@ -58,6 +59,40 @@ export function buildRestoreCommand({ localDbUrl, dumpFilePath }) {
   };
 }
 
+export function getProductionDbUrl(
+  processEnv = process.env,
+  projectEnv = loadProjectEnv(),
+) {
+  return processEnv.SUPABASE_PRODUCTION_DB_URL
+    ?? projectEnv.SUPABASE_PRODUCTION_DB_URL;
+}
+
+export function getProductionDbUrlValidationError(productionDbUrl) {
+  let parsedUrl;
+
+  try {
+    parsedUrl = new URL(productionDbUrl);
+  } catch {
+    return undefined;
+  }
+
+  const hostname = parsedUrl.hostname;
+  const username = decodeURIComponent(parsedUrl.username);
+  const isSupabaseDirectHost = /^db\.[^.]+\.supabase\.co$/i.test(hostname);
+
+  if (isSupabaseDirectHost && username !== 'postgres') {
+    return [
+      'SUPABASE_PRODUCTION_DB_URL is using a Supabase direct connection host',
+      `(${hostname}) with username "${username}".`,
+      'Supabase direct connections must use the "postgres" user.',
+      'Pooler-style users such as "postgres.<project-ref>" only work with pooler hosts.',
+      'Copy the direct connection string again from the Supabase dashboard Connect flow.',
+    ].join(' ');
+  }
+
+  return undefined;
+}
+
 function ensureExecutable(command) {
   const result = runCommand('which', [command], {
     stdio: 'pipe',
@@ -103,10 +138,18 @@ function listRemotePublicTables(productionDbUrl) {
 }
 
 function run() {
-  const productionDbUrl = process.env.SUPABASE_PRODUCTION_DB_URL;
+  const productionDbUrl = getProductionDbUrl();
 
   if (!productionDbUrl) {
     throw new Error('SUPABASE_PRODUCTION_DB_URL is required.');
+  }
+
+  const productionDbUrlValidationError = getProductionDbUrlValidationError(
+    productionDbUrl,
+  );
+
+  if (productionDbUrlValidationError) {
+    throw new Error(productionDbUrlValidationError);
   }
 
   ensureExecutable('pg_dump');

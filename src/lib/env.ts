@@ -8,6 +8,12 @@ const publicEnvSchema = z.object({
 
 const serverEnvSchema = publicEnvSchema.extend({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+  SUPABASE_SERVER_URL: z.string().url().optional(),
+});
+
+const serverSupabaseUrlSchema = z.object({
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
+  SUPABASE_SERVER_URL: z.string().url().optional(),
 });
 
 export function getPublicEnv() {
@@ -24,7 +30,17 @@ export function getServerEnv() {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    SUPABASE_SERVER_URL: process.env.SUPABASE_SERVER_URL,
   });
+}
+
+export function getServerSupabaseUrl() {
+  const env = serverSupabaseUrlSchema.parse({
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    SUPABASE_SERVER_URL: process.env.SUPABASE_SERVER_URL,
+  });
+
+  return env.SUPABASE_SERVER_URL ?? env.NEXT_PUBLIC_SUPABASE_URL;
 }
 
 export function hasSupabaseEnv() {

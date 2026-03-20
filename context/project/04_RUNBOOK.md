@@ -15,31 +15,36 @@
 ```bash
 npm install
 cp .env.local.example .env.local
-supabase start
-supabase db push
-npm run db:types
+npm run local:up
 ```
 
 ## Environment Variables
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=generated-by-local-setup
+SUPABASE_SERVICE_ROLE_KEY=generated-by-local-setup
+SUPABASE_SERVER_URL=http://host.docker.internal:54321
+SUPABASE_PRODUCTION_DB_URL=postgresql://postgres.your-project-ref:your-db-password@db.your-project-ref.supabase.co:5432/postgres
+SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=optional-for-local
+SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=optional-for-local
 ```
 
 ## Development Server
 
 ```bash
-npm run dev
-supabase start
+npm run local:up
 ```
 
 ## Useful Scripts (app branch)
 
 | Command | Purpose |
 |---|---|
-| `npm run dev` | Start dev server |
+| `npm run local:setup` | Start local Supabase, write `.env.local`, and regenerate Supabase types |
+| `npm run local:up` | Start local Supabase and the app container so both appear in Docker Desktop |
+| `npm run local:down` | Stop the app container and the local Supabase stack |
+| `npm run dev` | Start dev server directly on the host instead of in Docker |
 | `npm run build` | Production build |
 | `npm run start` | Start production server |
 | `npm run lint` | ESLint check |
@@ -47,7 +52,78 @@ supabase start
 | `npm run typecheck` | TypeScript check (`tsc --noEmit`) |
 | `npm run test` | Run tests |
 | `npm run qa` | Full QA gate |
+| `npm run db:start` | Start local Supabase in Docker through Supabase CLI |
+| `npm run db:status` | Show local Supabase status |
+| `npm run db:env:local` | Write local Supabase URL and keys into `.env.local` |
+| `npm run db:reset` | Reset the local database from migrations |
+| `npm run db:sync:prod-to-local` | Reset local DB and copy production data into it |
 | `npm run db:types` | Regenerate Supabase TS types |
+
+## Local Database Flow
+
+Shortest path:
+
+```bash
+npm install
+cp .env.local.example .env.local
+npm run local:up
+```
+
+Step-by-step path:
+
+```bash
+npm run local:setup
+docker compose -f compose.local.yml up -d --build app
+```
+
+Host-only app path:
+
+```bash
+npm run db:start
+npm run db:env:local
+npm run db:types
+npm run dev
+```
+
+Sync production data into local:
+
+```bash
+npm run db:sync:prod-to-local
+```
+
+This command expects:
+
+- `SUPABASE_PRODUCTION_DB_URL`
+- `pg_dump`
+- `psql`
+
+It copies:
+
+- all `public` tables
+- `auth.users`
+- `auth.identities`
+
+It does not copy:
+
+- active sessions
+- refresh tokens
+
+## Local Database Clients
+
+To connect with TablePlus or any PostgreSQL client:
+
+- Host: `127.0.0.1`
+- Port: `54322`
+- User: `postgres`
+- Password: `postgres`
+- Database: `postgres`
+- SSL: disabled
+
+Connection URL:
+
+```bash
+postgresql://postgres:postgres@127.0.0.1:54322/postgres
+```
 
 ## Docs Branch Workflow (`docs`)
 

@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
   buildNextLocalEnv,
+  buildSupabaseServerUrl,
   mergeEnvFileContent,
   parseStatusEnv,
 } from '@/lib/supabase/write-local-env.mjs';
@@ -10,8 +13,56 @@ import {
   buildPublicTablesQuery,
   buildRestoreCommand,
   createDumpTableNames,
+  getProductionDbUrl,
+  getProductionDbUrlValidationError,
   parsePublicTables,
 } from '@/lib/supabase/sync-prod-to-local.mjs';
+
+describe('package scripts', () => {
+  it('exposes a single local setup command for the recommended local flow', () => {
+    const packageJson = JSON.parse(
+      readFileSync(resolve(process.cwd(), 'package.json'), 'utf8'),
+    ) as { scripts: Record<string, string> };
+
+    expect(packageJson.scripts['local:setup']).toBe(
+      'npm run db:start && npm run db:env:local && npm run db:types',
+    );
+    expect(packageJson.scripts['local:up']).toBe(
+      'npm run local:setup && docker compose -f compose.local.yml up -d --build app',
+    );
+    expect(packageJson.scripts['local:down']).toBe(
+      'docker compose -f compose.local.yml down && npm run db:stop',
+    );
+  });
+});
+
+describe('local Supabase auth config', () => {
+  it('keeps project-wide signup disabled while allowing email/password auth for invited users', () => {
+    const configToml = readFileSync(
+      resolve(process.cwd(), 'supabase/config.toml'),
+      'utf8',
+    );
+
+    expect(configToml).toContain('enable_signup = false');
+    expect(configToml).toContain('[auth.email]');
+    expect(configToml).toContain('enable_signup = true');
+  });
+});
+
+describe('RLS helper functions', () => {
+  it('use security definer to avoid recursive policy evaluation', () => {
+    const migration = readFileSync(
+      resolve(process.cwd(), 'supabase/migrations/20260312180000_init_skintrack.sql'),
+      'utf8',
+    );
+
+    expect(migration).toContain('create or replace function public.is_superadmin()');
+    expect(migration).toContain('create or replace function public.can_manage_profile(profile_uuid uuid)');
+    expect(migration).toContain('create or replace function public.can_access_patient(patient_uuid uuid)');
+    expect(migration).toContain('create or replace function public.can_access_session(session_uuid uuid)');
+    expect(migration.match(/security definer/g)?.length ?? 0).toBeGreaterThanOrEqual(5);
+  });
+});
 
 describe('parseStatusEnv', () => {
   it('parses Supabase status env output', () => {
@@ -20,6 +71,22 @@ API_URL=http://127.0.0.1:54321
 ANON_KEY=local-anon
 SERVICE_ROLE_KEY=local-service
 DB_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+`);
+
+    expect(parsed).toEqual({
+      API_URL: 'http://127.0.0.1:54321',
+      ANON_KEY: 'local-anon',
+      SERVICE_ROLE_KEY: 'local-service',
+      DB_URL: 'postgresql://postgres:postgres@127.0.0.1:54322/postgres',
+    });
+  });
+
+  it('strips wrapping quotes from Supabase status env output', () => {
+    const parsed = parseStatusEnv(`
+API_URL="http://127.0.0.1:54321"
+ANON_KEY="local-anon"
+SERVICE_ROLE_KEY="local-service"
+DB_URL="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
 `);
 
     expect(parsed).toEqual({
@@ -44,7 +111,19 @@ describe('buildNextLocalEnv', () => {
       NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321',
       NEXT_PUBLIC_SUPABASE_ANON_KEY: 'local-anon',
       SUPABASE_SERVICE_ROLE_KEY: 'local-service',
+      SUPABASE_SERVER_URL: 'http://host.docker.internal:54321',
     });
+  });
+});
+
+describe('buildSupabaseServerUrl', () => {
+  it('rewrites localhost APIs so the app container can reach Supabase on the host', () => {
+    expect(buildSupabaseServerUrl('http://127.0.0.1:54321')).toBe(
+      'http://host.docker.internal:54321',
+    );
+    expect(buildSupabaseServerUrl('http://localhost:54321')).toBe(
+      'http://host.docker.internal:54321',
+    );
   });
 });
 
@@ -62,14 +141,18 @@ describe('mergeEnvFileContent', () => {
       NEXT_PUBLIC_SUPABASE_URL: 'http://127.0.0.1:54321',
       NEXT_PUBLIC_SUPABASE_ANON_KEY: 'local-anon',
       SUPABASE_SERVICE_ROLE_KEY: 'local-service',
+      SUPABASE_SERVER_URL: 'http://host.docker.internal:54321',
     });
 
     expect(merged).toContain('NEXT_PUBLIC_APP_URL=http://localhost:3000');
     expect(merged).toContain('NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321');
     expect(merged).toContain('NEXT_PUBLIC_SUPABASE_ANON_KEY=local-anon');
     expect(merged).toContain('SUPABASE_SERVICE_ROLE_KEY=local-service');
+    expect(merged).toContain('SUPABASE_SERVER_URL=http://host.docker.internal:54321');
     expect(merged).toContain('CUSTOM_VAR=keep-me');
-    expect(merged.trim().endsWith('SUPABASE_SERVICE_ROLE_KEY=local-service')).toBe(true);
+    expect(merged.trim().endsWith('SUPABASE_SERVER_URL=http://host.docker.internal:54321')).toBe(
+      true,
+    );
   });
 });
 
@@ -99,6 +182,42 @@ describe('createDumpTableNames', () => {
       'public.profiles',
       'public.patients',
     ]);
+  });
+});
+
+describe('getProductionDbUrl', () => {
+  it('prefers process.env and falls back to project env files', () => {
+    expect(
+      getProductionDbUrl(
+        { SUPABASE_PRODUCTION_DB_URL: 'postgresql://from-process-env' },
+        { SUPABASE_PRODUCTION_DB_URL: 'postgresql://from-project-env' },
+      ),
+    ).toBe('postgresql://from-process-env');
+
+    expect(
+      getProductionDbUrl(
+        {},
+        { SUPABASE_PRODUCTION_DB_URL: 'postgresql://from-project-env' },
+      ),
+    ).toBe('postgresql://from-project-env');
+  });
+});
+
+describe('getProductionDbUrlValidationError', () => {
+  it('rejects direct Supabase hosts when they use a pooler-style username', () => {
+    expect(
+      getProductionDbUrlValidationError(
+        'postgresql://postgres.project-ref:secret@db.project-ref.supabase.co:5432/postgres',
+      ),
+    ).toContain('direct connection');
+  });
+
+  it('accepts a valid direct Supabase connection string', () => {
+    expect(
+      getProductionDbUrlValidationError(
+        'postgresql://postgres:secret@db.project-ref.supabase.co:5432/postgres',
+      ),
+    ).toBeUndefined();
   });
 });
 
