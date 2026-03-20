@@ -19,7 +19,10 @@
       },
       {
         "group": "Workflows",
-        "pages": ["workflows/supabase-onboarding"]
+        "pages": [
+          "workflows/local-development",
+          "workflows/supabase-onboarding"
+        ]
       }
     ]
   }

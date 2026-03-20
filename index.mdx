@@ -13,11 +13,15 @@ It ships with:
 - patient records with ownership-based access
 - clinical sessions with draft mode and autosave
 - superadmin-controlled invitations and user management
+- Docker-based local development with Supabase CLI
+- production-to-local database sync for realistic local testing
 
 ## Stack
 
 - Next.js 15 App Router
 - Supabase Auth + PostgreSQL + RLS
+- Supabase CLI for local services
+- Docker Desktop for the app container and local Supabase
 - Tailwind CSS 4
 - Motion
 - Zustand
@@ -31,3 +35,19 @@ It ships with:
 - Users
 - Patients
 - Clinical Sessions
+
+## Local development model
+
+The current `supabase-local` branch is built around a local Docker stack instead of a host-only setup.
+
+- `npm run local:up` is the recommended entrypoint
+- Supabase local runs in Docker through the CLI
+- the Next.js app runs in the `skintrack-app` container
+- `.env.local` is partially generated from `supabase status -o env`
+- `SUPABASE_SERVER_URL` lets the app container reach the Supabase API on the host bridge
+
+## Recommended reading order
+
+1. Start with the setup guide for prerequisites and first boot.
+2. Use the local development workflow for Docker, local DB, and production sync.
+3. Use the auth onboarding workflow for invitation rules and local auth parity.

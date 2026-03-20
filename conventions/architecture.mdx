@@ -14,6 +14,7 @@ SkinTrack uses a server-first Next.js architecture.
 - Supabase is the only backend service.
 - RLS is the final authorization layer.
 - Zustand is used only for browser-owned UI state.
+- Local development is Docker-first and generated from Supabase CLI status output.
 
 ## Domain modules
 
@@ -30,3 +31,11 @@ SkinTrack uses a server-first Next.js architecture.
 - Google OAuth is allowed only for invited emails.
 - `complete_user_onboarding()` creates or syncs the `profiles` row after login.
 - `service_role` is used only on the server for invitation and admin flows.
+- RLS helper functions use `security definer` to avoid recursive policy evaluation.
+
+## Runtime environment model
+
+- Browser code reads `NEXT_PUBLIC_SUPABASE_URL`.
+- Server code can prefer `SUPABASE_SERVER_URL` when present.
+- Local setup writes `.env.local` from `supabase status -o env`.
+- Production-to-local sync works against repo migrations first, then restores data.

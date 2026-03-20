@@ -5,6 +5,20 @@ description: Local setup for the SkinTrack app and its Supabase integration.
 
 # Setup
 
+## Prerequisites
+
+Install these tools before the first boot:
+
+- Node.js 20+
+- npm
+- Docker Desktop
+- PostgreSQL client tools: `psql` and `pg_dump`
+
+The project uses Docker in two places:
+
+- Supabase local runs in Docker containers managed by the Supabase CLI
+- the Next.js app runs in the local `skintrack-app` container
+
 ## Install dependencies
 
 ```bash
@@ -17,57 +31,94 @@ npm install
 cp .env.local.example .env.local
 ```
 
-Set these values before starting local Supabase:
+Set only the project-specific values before the first run:
 
 ```bash
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+SUPABASE_PRODUCTION_DB_URL=postgresql://postgres:your-db-password@db.your-project-ref.supabase.co:5432/postgres
 SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET=your-google-client-secret
-SUPABASE_PRODUCTION_DB_URL=postgresql://postgres.your-project-ref:your-db-password@db.your-project-ref.supabase.co:5432/postgres
 ```
 
-## Start local Supabase in Docker
+These values are generated or overwritten by local setup and should not be filled with production credentials:
 
 ```bash
-npm run db:start
-```
-
-## Write local app credentials into `.env.local`
-
-```bash
-npm run db:env:local
-```
-
-This command updates only the Supabase keys used by the app:
-
-```bash
-NEXT_PUBLIC_APP_URL
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
+SUPABASE_SERVER_URL
 ```
 
-## Regenerate database types
+## Fastest local boot
 
 ```bash
+npm run local:up
+```
+
+This single command does all of this:
+
+- starts local Supabase in Docker
+- writes local Supabase credentials into `.env.local`
+- regenerates `src/types/supabase.ts`
+- builds the app container
+- starts the app container
+
+After it finishes:
+
+- app: `http://localhost:3000`
+- login: `http://localhost:3000/login`
+- local Supabase API: `http://127.0.0.1:54321`
+- local Postgres: `127.0.0.1:54322`
+
+## Manual path
+
+If you want the same flow with explicit steps:
+
+```bash
+npm run local:setup
+docker compose -f compose.local.yml up -d --build app
+```
+
+`npm run local:setup` expands to:
+
+```bash
+npm run db:start
+npm run db:env:local
 npm run db:types
 ```
 
-## Local schema files
+## Local env behavior
 
-The local Supabase project is configured in:
+`npm run db:env:local` reads `supabase status -o env` and updates these keys in `.env.local`:
 
-```txt
-supabase/config.toml
-supabase/migrations/20260312180000_init_skintrack.sql
-```
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `SUPABASE_SERVER_URL`
 
-The local config keeps auth aligned with production behavior:
+`SUPABASE_SERVER_URL` is important for the Dockerized app. It rewrites `127.0.0.1` or `localhost` to `host.docker.internal` so the `skintrack-app` container can still reach the Supabase API.
 
-- public signup disabled
-- email/password available only for invited users
+## Local schema and auth config
+
+The local Supabase setup is defined in:
+
+- `supabase/config.toml`
+- `supabase/migrations/20260312180000_init_skintrack.sql`
+
+The current config keeps local auth close to production:
+
+- project-wide signup disabled at `[auth]`
+- email auth enabled so invited users can accept invites
 - Google OAuth enabled through environment variables
-- local callback allowed at `http://localhost:3000/auth/callback`
+- redirect callback at `http://127.0.0.1:54321/auth/v1/callback`
+- app callback allowed at `/auth/callback`
+
+If you change `supabase/config.toml`, restart the local stack so auth picks up the new config:
+
+```bash
+npm run local:down
+npm run local:up
+```
 
 ## Sync production data into local Supabase
 
@@ -90,20 +141,39 @@ Requirements:
 - `SUPABASE_PRODUCTION_DB_URL` must be present
 - `pg_dump` and `psql` must be installed locally
 
+If the host is `db.<project-ref>.supabase.co`, the username must be `postgres`. Do not use a pooler-style username with the direct host.
+
 The sync intentionally does not copy active sessions or refresh tokens.
 
-## Run the app
+The command copies data only. If production drifted from the repo migrations, fix schema drift first.
 
-```bash
-npm run dev
-```
-
-Useful local database commands:
+## Useful commands
 
 ```bash
 npm run db:status
 npm run db:reset
 npm run db:stop
+docker compose -f compose.local.yml ps
+docker compose -f compose.local.yml logs -f app
+```
+
+## Local DB clients
+
+To inspect local data with TablePlus or any PostgreSQL client:
+
+```bash
+Host=127.0.0.1
+Port=54322
+User=postgres
+Password=postgres
+Database=postgres
+SSL=disabled
+```
+
+Connection URL:
+
+```txt
+postgresql://postgres:postgres@127.0.0.1:54322/postgres
 ```
 
 ## Quality gate

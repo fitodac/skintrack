@@ -21,6 +21,15 @@ The local Supabase stack is expected to behave like production for auth:
 - invited users can log in with email/password
 - invited users can also log in with Google OAuth
 - the app callback stays at `/auth/callback`
+- local server code may use `SUPABASE_SERVER_URL` instead of the browser URL when the app runs inside Docker
+
+This is reflected in `supabase/config.toml`:
+
+- `[auth].enable_signup = false`
+- `[auth.email].enable_signup = true`
+- Google provider callback: `http://127.0.0.1:54321/auth/v1/callback`
+
+The combination looks odd at first, but it matches the intended invite flow: public signup is off, while the email auth provider still supports invited-user acceptance.
 
 For local Google OAuth, configure the provider to allow:
 
@@ -41,6 +50,8 @@ For local Google OAuth, configure the provider to allow:
 - `can_access_patient(uuid)`
 - `can_access_session(uuid)`
 - `complete_user_onboarding()`
+
+The RLS helper functions are defined with `security definer` so policies do not recurse through the protected tables they validate.
 
 ## First environment bootstrap
 
@@ -67,6 +78,8 @@ This replaces the local data set with:
 - `auth.identities`
 
 The command does not import active sessions or refresh tokens.
+
+It also assumes local schema already matches the repo migrations. If production has drift, repair that before syncing data.
 
 ## Real emails used for the initial rollout
 
